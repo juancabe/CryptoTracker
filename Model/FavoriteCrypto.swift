@@ -9,13 +9,15 @@ import Foundation
 import SwiftData
 
 @Model
-final class Favorite : Cryptocurrency {
+final class FavoriteCrypto {
     
     var addedAt: Date
+    var name: String
+    var symbol: String
     
-    override init(name: String, symbol: String)
-    {
-        addedAt = Date()
-        super.init(name: name, symbol: symbol)
+    init(name: String, symbol: String) {
+        self.name = name
+        self.symbol = symbol
+        self.addedAt = Date()
     }
 }
