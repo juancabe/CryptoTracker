@@ -7,44 +7,97 @@
 
 import Foundation
 
+struct BasicCrypto : Hashable {
+    let id: String
+    let name: String
+    let symbol: String
+    
+    init(id: String, name: String, symbol: String) {
+        self.id = id
+        self.name = name
+        self.symbol = symbol
+    }
+}
+
 class CryptoRetrieveService {
     private let baseURL: URL = URL(string: "https://api.coingecko.com/api/v3")!
     
     // Singleton
-    static private var lastReqTime: Date? = nil
     static private let shared = CryptoRetrieveService()
     public static func getInstance() -> CryptoRetrieveService {
-        if let lastReqTime = lastReqTime, Date().timeIntervalSince(lastReqTime) < 1 {
-            return shared
-        }
-        lastReqTime = Date()
         return shared
     }
+    
+    private var allCoinsBasic: [BasicCrypto]? = nil
+    
     private init(){}
     
-    func getAllCoins(currency: String, maxResults: Int) async -> [CryptocurrencyData]? {
-        // Include the `vs_currency` query parameter
-        let baseURL = "https://api.coingecko.com/api/v3/coins/markets"
-        var components = URLComponents(string: baseURL)!
-        components.queryItems = [
-            URLQueryItem(name: "vs_currency", value: currency), // Required parameter
-            URLQueryItem(name: "order", value: "market_cap_desc"), // order by market cap
-            URLQueryItem(name: "per_page", value: String(maxResults)), // limit results per page to maxResults
-            URLQueryItem(name: "page", value: "1"), // specify the page
-            URLQueryItem(name: "sparkline", value: "false") // exclude sparkline data
-        ]
-
-        guard let url = components.url else {
-            print("Failed to construct URL")
-            return nil
+    func getAllCoinsBasic() async -> [BasicCrypto] {
+        if let allCoinsBasic {
+            return allCoinsBasic
+        } else {
+            allCoinsBasic = await _getAllCoinsBasic()
+            if let allCoinsBasic {
+                return allCoinsBasic
+            } else {
+                allCoinsBasic = []
+                return []
+            }
         }
-
+    }
+    
+    private func _getAllCoinsBasic() async -> [BasicCrypto]? {
+        let url = URL(string: "https://api.coingecko.com/api/v3/coins/list")!
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
         request.timeoutInterval = 10
         request.allHTTPHeaderFields = ["accept": "application/json"]
         
+        do {
+            let (data, _) = try await URLSession.shared.data(for: request)
+            let decodedResponse = try JSONDecoder().decode([[String: String]].self, from: data)
+            
+            // Map the response to BasicCrypto objects and limit to maxResults
+            let basicCoins = decodedResponse.compactMap { coin in
+                if let id = coin["id"], let name = coin["name"], let symbol = coin["symbol"] {
+                    return BasicCrypto(id: id, name: name, symbol: symbol)
+                }
+                return nil
+            }
+            
+            return basicCoins
+        } catch {
+            print("Error fetching coins: \(error.localizedDescription)")
+            return nil
+        }
+    }
+    
+    func cryptoInfo(id: String, curr: CurrencyInfo, isFavorite: Bool = false) async -> CryptoInfo? {
+        let url = URL(string: "https://api.coingecko.com/api/v3/coins/\(id)")!
         
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        request.timeoutInterval = 10
+        request.allHTTPHeaderFields = [
+            "accept": "application/json"
+        ]
+        
+        debugPrint("Fetching url: \(url)")
+        
+        guard let receivedData = await sendRequest(request: request) else {
+            debugPrint("[cryptoInfo] Networking error")
+            return nil
+        }
+        
+        guard let decoded: CryptocurrencyData = await decodeData(receivedData: receivedData) else {
+            debugPrint("[cryptoInfo] Decoding error")
+            return nil
+        }
+        return CryptoInfo(data: decoded, curr: curr, isFavorite: isFavorite)
+        
+    }
+    
+    private func sendRequest(request: URLRequest) async -> Data? {
         var receivedData: Data? = nil
         do {
             let (data, _) = try await URLSession.shared.data(for: request)
@@ -54,6 +107,10 @@ class CryptoRetrieveService {
             return nil
         }
         
+        return receivedData
+    }
+    
+    private func decodeData<T: Decodable>(receivedData: Data) async -> T? {
         // Decode
         let decoder = JSONDecoder()
 
@@ -82,7 +139,7 @@ class CryptoRetrieveService {
         }
         
         do {
-            let crypto = try decoder.decode([CryptocurrencyData].self, from: receivedData!)
+            let crypto = try decoder.decode(T.self, from: receivedData)
             return crypto
         } catch {
             print("Failed to decode JSON: \(error)")

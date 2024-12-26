@@ -11,13 +11,9 @@ import SwiftData
 @Model
 final class FavoriteCrypto {
     
-    var addedAt: Date
-    var name: String
-    var symbol: String
+    var id: String
     
-    init(name: String, symbol: String) {
-        self.name = name
-        self.symbol = symbol
-        self.addedAt = Date()
+    init (id: String) {
+        self.id = id
     }
 }
