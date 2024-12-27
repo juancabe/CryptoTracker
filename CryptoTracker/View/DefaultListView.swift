@@ -9,20 +9,20 @@ import SwiftUI
 import SwiftData
 
 struct DefaultListView: View {
-    @State public var vm: CryptoList
+    @State public var vm: MainViewModel
 
     var body: some View {
         NavigationSplitView {
-            Text("Number of cryptos: \(vm.cryptoFavoritesInfo.count)")
+            Text("Number of cryptos: \(vm.cryptoSavedInfo.count)")
             List {
-                ForEach(vm.cryptoFavoritesInfo) { item in
+                ForEach(vm.cryptoSavedInfo) { item in
                     NavigationLink {
                         Text("Item at \(item.name)")
                     } label: {
                         CryptoListItemView(crypto: item)
                     }
                 }
-                .onDelete(perform: vm.deleteFavorites)
+                .onDelete(perform: vm.deleteSaved)
             }
         } detail: {
             Text("Select an item")
@@ -30,11 +30,11 @@ struct DefaultListView: View {
         .navigationTitle("Default List")
     }
     
-    init(vm : CryptoList) {
+    init(vm : MainViewModel) {
         _vm = State(initialValue: vm)
     }
 }
 
 #Preview {
-    DefaultListView(vm: CryptoList())
+    DefaultListView(vm: MainViewModel())
 }

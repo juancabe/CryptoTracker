@@ -9,15 +9,16 @@ import SwiftUI
 
 struct CryptoListItemView: View {
     
-    private var crypto: CryptoInfo
+    @ObservedObject var crypto: CryptoInfo
     
     var body: some View {
+        
         HStack {
             AsyncImage(url: crypto.imageUrl, scale: 6.0)
                 .frame(width: 60.0, height: 60.0)
                 .cornerRadius(12.0)
             
-            VStack {
+            VStack (alignment: .leading) {
                 Text(crypto.name)
                     .font(.title)
                 Text(crypto.symbol)
@@ -26,19 +27,16 @@ struct CryptoListItemView: View {
             
             Spacer()
             
-            VStack {
+            VStack (alignment: .trailing) {
                 Text(crypto.price)
                     .font(.headline)
-                Text(crypto.marketCap)
+                Text(crypto.priceChange)
+                    .foregroundStyle(
+                        crypto.priceChange.hasPrefix("-") ? .red : .green
+                    )
             }
-            
         }
     }
-    
-    init(crypto: CryptoInfo) {
-        self.crypto = crypto
-    }
-    
 }
 
 #Preview {
@@ -48,5 +46,6 @@ struct CryptoListItemView: View {
                           price: "110230.54 $",
                           marketCap: "2B$",
                           imageUrl: URL( filePath: "https://coin-images.coingecko.com/coins/images/1/large/bitcoin.png?1696501400")!,
-                           priceChange: "10%", isFavorite: true))
+                           priceChange: "10%", isSaved: true,api_id: "t78dwag", isFavorite: true
+                           ))
 }

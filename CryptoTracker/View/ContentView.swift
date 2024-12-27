@@ -11,17 +11,23 @@ import SwiftData
 struct ContentView: View {
     
     private var modelContext: ModelContext? = nil
-    private var cryptoListVm: CryptoList
+    private var vm: MainViewModel
 
     var body: some View {
         TabView {
+            /*
             DefaultListView(vm: cryptoListVm)
                 .tabItem {
                     Label("All Cryptos", systemImage: "list.bullet")
                 }
-            PersonalListView(vm: cryptoListVm)
+             */
+            PersonalListView(vm: vm)
                 .tabItem {
                     Label("Your cryptos", systemImage: "star")
+                }
+            SettingsView(vm: vm)
+                .tabItem {
+                    Label("Settings", systemImage: "gear")
                 }
         }
     }
@@ -29,9 +35,9 @@ struct ContentView: View {
     init(modelContext: ModelContext?) {
         self.modelContext = modelContext
         if let modelContext {
-            self.cryptoListVm = CryptoList(modelContext: modelContext)
+            self.vm = MainViewModel(modelContext: modelContext)
         } else {
-            self.cryptoListVm = CryptoList()
+            self.vm = MainViewModel()
         }
     }
 

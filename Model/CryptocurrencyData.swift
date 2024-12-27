@@ -8,8 +8,6 @@
 
 import Foundation
 
-import Foundation
-
 struct CryptocurrencyData: Codable {
     let id: String
     let symbol: String
@@ -37,7 +35,6 @@ struct CryptocurrencyData: Codable {
     let market_data: MarketData
     let community_data: CommunityData
     let developer_data: DeveloperData
-    let status_updates: [String]
     let last_updated: String?
     
     struct DetailPlatform: Codable {
@@ -74,7 +71,6 @@ struct CryptocurrencyData: Codable {
     
     struct MarketData: Codable {
         let current_price: [String: Double]
-        let total_value_locked: Double?
         let mcap_to_tvl_ratio: Double?
         let fdv_to_tvl_ratio: Double?
         let ath: [String: Double]
@@ -135,8 +131,6 @@ struct CryptocurrencyData: Codable {
         let pull_requests_merged: Int?
         let pull_request_contributors: Int?
         let code_additions_deletions_4_weeks: CodeAdditionsDeletions?
-        let commit_count_4_weeks: Int?
-        let last_4_weeks_commit_activity_series: [String]?
         
         struct CodeAdditionsDeletions: Codable {
             let additions: Int?

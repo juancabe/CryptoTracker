@@ -9,64 +9,95 @@ import SwiftUI
 import SwiftData
 
 struct PersonalListView: View {
-    @State public var vm: CryptoList
+    @State public var vm: MainViewModel
 
     var body: some View {
         NavigationView {
             ZStack {
-                
-                
                 VStack {
                     NavigationSplitView {
-                        if(vm.favorites.isEmpty) {
-                            Text("No favorites").font(.headline).padding(.top, 300.0)
-                            Text("Try adding some favorites").font(.subheadline).foregroundColor(.secondary)
+                        if(vm.savedCrypto.isEmpty) {
+                            Text("No saved crypto").font(.headline).padding(.top, 300.0)
+                            Text("Try saving some crypto").font(.subheadline).foregroundColor(.secondary)
                         }
+                        // To keep list syncronized with vm.cryptoSavedInfo when adding item
+                        Text("\($vm.cryptoSavedInfo.count)").opacity(0.0)
+                        
+                        // List of items stored on vm.cryptoSavedInfo
                         List {
-                            ForEach(vm.cryptoFavoritesInfo) { item in
+                            ForEach($vm.cryptoSavedInfo) { $item in
                                 NavigationLink {
-                                    Text("Item at \(item.name)")
+                                    CryptoDetailView(info: item, vm: vm)
                                 } label: {
-                                    CryptoListItemView(crypto: item)
+                                    ZStack {
+                                        CryptoListItemView(crypto: item)
+                                        if(item.isFavorite) {
+                                            HStack {
+                                                VStack {
+                                                    Image(systemName: "star.fill")
+                                                        .foregroundStyle(.yellow)
+                                                    Spacer()
+                                                }
+                                                Spacer()
+                                            }
+                                        }
+                                    }
+                                    
+                                }
+                                .swipeActions (edge: .leading) {
+                                    Button {
+                                        withAnimation {
+                                            vm.toggleFavorite(obj: item)
+                                        }
+                                    } label: {
+                                        Label("Custom", systemImage: "star")
+                                            .foregroundStyle(.yellow)
+                                    }
+                                }
+                                .swipeActions(edge: .trailing) {
+                                    Button(role: .destructive) {
+                                        withAnimation {
+                                            vm.deleteSaved(obj: item)
+                                        }
+                                        
+                                    } label: {
+                                        Label("Delete", systemImage: "trash")
+                                    }
                                 }
                             }
-                            .onDelete(perform: vm.deleteFavorites)
                         }
+                    
                     } detail: {
                         Text("Select an item")
                     }
-                    .navigationTitle("Personal List")
+                    
                 }
+                .navigationTitle("Personal List")
+                
                 VStack {
                     Spacer()
                     HStack {
                         Spacer()
                         NavigationLink {
-                            AddFavoriteView(vm: vm)
+                            AddSavedView(vm: vm)
                         } label: {
                             Image(systemName: "plus.circle.fill")
                                 .font(.system(size: 50))
-                                
                         }
-                        .padding(.trailing, 40.0)
+                        .padding(.trailing, 20.0)
                         .background(.clear)
                     }
                 }
-                
-                
             }
-            
         }
-        .animation(.default)
-        
     }
     
-    init(vm : CryptoList) {
+    init(vm : MainViewModel) {
               
         _vm = State(initialValue: vm)
     }
 }
 
 #Preview {
-    PersonalListView(vm: CryptoList())
+    PersonalListView(vm: MainViewModel())
 }

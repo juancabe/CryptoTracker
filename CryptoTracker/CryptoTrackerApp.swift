@@ -12,7 +12,7 @@ import SwiftData
 struct CryptoTrackerApp: App {
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([
-            FavoriteCrypto.self,
+            SavedCrypto.self,
         ])
         let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
 
