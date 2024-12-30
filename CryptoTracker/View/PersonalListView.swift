@@ -16,69 +16,91 @@ struct PersonalListView: View {
             ZStack {
                 VStack {
                     NavigationSplitView {
+                        // To keep list syncronized with vm.cryptoSavedInfo when adding item
+                        Text("\($vm.cryptoSavedInfo.count)").opacity(0.0)
                         if(vm.savedCrypto.isEmpty) {
                             Text("No saved crypto").font(.headline).padding(.top, 300.0)
                             Text("Try saving some crypto").font(.subheadline).foregroundColor(.secondary)
+                        } else if !vm.isLoaded {
+                            Spacer()
+                            Text("Loading saved crypto info...").opacity(0.5)
+                            ProgressView()
+                            Spacer()
                         }
-                        // To keep list syncronized with vm.cryptoSavedInfo when adding item
-                        Text("\($vm.cryptoSavedInfo.count)").opacity(0.0)
-                        
                         // List of items stored on vm.cryptoSavedInfo
                         List {
                             ForEach($vm.cryptoSavedInfo) { $item in
-                                NavigationLink {
-                                    CryptoDetailView(info: item, vm: vm)
-                                } label: {
-                                    ZStack {
-                                        CryptoListItemView(crypto: item)
-                                        if(item.isFavorite) {
-                                            HStack {
-                                                VStack {
-                                                    Image(systemName: "star.fill")
-                                                        .foregroundStyle(.yellow)
+                                if(!vm.justFavorites || item.isFavorite) {
+                                    NavigationLink {
+                                        CryptoDetailView(info: item, vm: vm)
+                                    } label: {
+                                        ZStack {
+                                            CryptoListItemView(crypto: item)
+                                            if(item.isFavorite) {
+                                                HStack {
+                                                    VStack {
+                                                        Image(systemName: "star.fill")
+                                                            .foregroundStyle(.yellow)
+                                                        Spacer()
+                                                    }
                                                     Spacer()
                                                 }
-                                                Spacer()
                                             }
                                         }
-                                    }
-                                    
-                                }
-                                .swipeActions (edge: .leading) {
-                                    Button {
-                                        withAnimation {
-                                            vm.toggleFavorite(obj: item)
-                                        }
-                                    } label: {
-                                        Label("Custom", systemImage: "star")
-                                            .foregroundStyle(.yellow)
-                                    }
-                                }
-                                .swipeActions(edge: .trailing) {
-                                    Button(role: .destructive) {
-                                        withAnimation {
-                                            vm.deleteSaved(obj: item)
-                                        }
                                         
-                                    } label: {
-                                        Label("Delete", systemImage: "trash")
+                                    }
+                                    .swipeActions (edge: .leading) {
+                                        Button {
+                                            withAnimation {
+                                                vm.toggleFavorite(obj: item)
+                                            }
+                                        } label: {
+                                            Label("Custom", systemImage: "star")
+                                                .foregroundStyle(.yellow)
+                                        }
+                                    }
+                                    .swipeActions(edge: .trailing) {
+                                        Button(role: .destructive) {
+                                            withAnimation {
+                                                vm.deleteSaved(obj: item)
+                                            }
+                                            
+                                        } label: {
+                                            Label("Delete", systemImage: "trash")
+                                        }
                                     }
                                 }
                             }
                         }
-                    
+                        
                     } detail: {
                         Text("Select an item")
                     }
-                    
+                    .refreshable {
+                        // Call ViewModel to refresh
+                        await vm.refresh()
+                    }
                 }
                 .navigationTitle("Personal List")
                 
-                VStack {
+                HStack {
                     Spacer()
-                    HStack {
+                    VStack {
                         Spacer()
-                        NavigationLink {
+                        Button { // Button for displaying favorites only
+                            vm.justFavoritesToggle()
+                        } label: {
+                            if (vm.justFavorites) {
+                                Image(systemName: "star.circle.fill")
+                                    .font(.system(size: 50))
+                            } else {
+                                Image(systemName: "star.circle")
+                                    .font(.system(size: 50))
+                            }
+                        }
+                        .padding(.trailing, 20.0)
+                        .background(.clear)
+                        NavigationLink { // NavLink for adding saved crypto
                             AddSavedView(vm: vm)
                         } label: {
                             Image(systemName: "plus.circle.fill")

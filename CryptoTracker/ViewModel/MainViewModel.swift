@@ -13,22 +13,41 @@ import SwiftUICore
 @Observable
 class MainViewModel : ObservableObject {
     
+    // Keychain constants
     private let bundleName = "juancabe.CryptoTracker"
     private let keyValue = "apiKey"
     private let keychain: Keychain
     
     var isLoaded: Bool = false
+    var justFavorites: Bool = false
     private var modelContext: ModelContext?
     
+    private var refreshed: Date = Date()
+    
+    // State lists
     var savedCrypto: [SavedCrypto] = [SavedCrypto]()
     var allCryptoBasic: [BasicCrypto] = [BasicCrypto]()
     var cryptoSavedInfo: [CryptoInfo] = [CryptoInfo]()
     
+    // UserDefaults needed for storing user's default currency
     private let defaults = UserDefaults.standard
     var currency: CurrencyInfo
     
-    private let maxResults = 20
+    // Getter for currency
+    func getCurrencyInfo() -> CurrencyInfo {
+        return currency
+    }
+    // Setter for currency
+    func setCurrencyInfo(_ currency: CurrencyInfo) {
+        self.currency = currency
+        fetchSaved()
+        defaults.set(currency.currencyRepresentation, forKey: "currency")
+        Task {
+            await buildCryptoList()
+        }
+    }
     
+    // Default init
     init(modelContext: ModelContext) {
         self.modelContext = modelContext
         self.keychain = Keychain(service: bundleName)
@@ -45,25 +64,36 @@ class MainViewModel : ObservableObject {
         
     }
     
+    // Empty init, for previews
     init() {
         self.modelContext = nil
         self.keychain = Keychain(service: bundleName)
         self.currency = CurrencyInfo("usd")
     }
     
-    func getCurrencyInfo() -> CurrencyInfo {
-        return currency
-    }
-    
-    func setCurrencyInfo(_ currency: CurrencyInfo) {
-        self.currency = currency
-        fetchSaved()
-        defaults.set(currency.currencyRepresentation, forKey: "currency")
-        Task {
-            await buildCryptoList()
+    func refresh() async {
+        do {
+            try await Task.sleep(nanoseconds: 500_000_000) // Little delay 0.5s for UI flow
+        } catch {
+            debugPrint("Couldn't wait due to: \(error.localizedDescription)")
+        }
+        if refreshed < Date().addingTimeInterval(-10) { // Only refresh when 10 seconds after last refresh
+            if allCryptoBasic.isEmpty { // Expensive API call
+                await fetchAllCryptoBasic()
+            }
+            fetchSaved()
+            await buildCryptoList(force: true)
+            refreshed = Date()
+        } else {
+            debugPrint("Didn't refresh")
         }
     }
     
+    func justFavoritesToggle() {
+        justFavorites = !justFavorites
+    }
+    
+    // Fetch saved crypto from SwiftData
     private func fetchSaved() {
         do{
             try savedCrypto = modelContext!.fetch(FetchDescriptor<SavedCrypto>())
@@ -73,7 +103,8 @@ class MainViewModel : ObservableObject {
         }
     }
     
-    private func buildCryptoList() async {
+    // Build CryptoInfo list from SavedCrypto list
+    private func buildCryptoList(force: Bool = false) async {
         cryptoSavedInfo.removeAll()
         debugPrint("data.count: \(allCryptoBasic.count)")
         debugPrint("savedCrypto.count: \(savedCrypto.count)")
@@ -83,7 +114,7 @@ class MainViewModel : ObservableObject {
                 $0.id == data.id
             }) {
                 let isFavorite: Bool = savedCrypto[index].favorite
-                if let info = await CryptoRetrieveService.getInstance().cryptoInfo(id: data.id, curr: currency, isSaved: true, isFavorite: isFavorite, apiKey: getAPIKey()) {
+                if let info = await CryptoRetrieveService.getInstance().cryptoInfo(id: data.id, curr: currency, isSaved: true, isFavorite: isFavorite, apiKey: getAPIKey(), force: force) {
                     cryptoSavedInfo.append(info)
                 } else {
                     debugPrint("[buildCryptoList] couldn't retrieve info for \(data.id)")
@@ -92,11 +123,13 @@ class MainViewModel : ObservableObject {
         }
     }
     
+    // Fetch data from API
     private func fetchAllCryptoBasic() async {
         allCryptoBasic = await CryptoRetrieveService.getInstance().getAllCoinsBasic(apiKey: getAPIKey())
         await buildCryptoList()
     }
     
+    // Add SavedCypto to SwiftData
     public func addSaved(id: String) {
         let newItem = SavedCrypto(id: id)
         if let mc = modelContext {
@@ -119,30 +152,8 @@ class MainViewModel : ObservableObject {
          }
         
     }
-
-    public func deleteSaved(offsets: IndexSet) {
-        if let mc = modelContext {
-            for index in offsets {
-                let id = cryptoSavedInfo[index].api_id
-                if let savedI = savedCrypto.firstIndex(where: { $0.id == id }) {
-                    debugPrint("Deleting saved \(savedCrypto[savedI].id)")
-                    mc.delete(savedCrypto[savedI])
-                }
-            }
-            do {
-                try mc.save()
-            } catch {
-                debugPrint("MC couldn't be saved")
-            }
-        }
-        debugPrint("Deleted items")
-        fetchSaved()
-        Task {
-            await buildCryptoList()
-        }
-    }
     
-    
+    // Delte SavedCrypto from SwiftData
     public func deleteSaved(obj: CryptoInfo) {
         if let mc = modelContext {
             let id = obj.api_id
@@ -162,16 +173,9 @@ class MainViewModel : ObservableObject {
         if let inList = cryptoSavedInfo.firstIndex(where: {$0.api_id == obj.api_id}) {
             cryptoSavedInfo.remove(at: inList)
         }
-        
-        /*
-         fetchSaved()
-         Task {
-             await buildCryptoList()
-         }
-         */
-        
     }
     
+    // Toggle favorite attribute from specific crypto
     public func toggleFavorite(obj: CryptoInfo) {
         if let mc = modelContext {
             
@@ -192,6 +196,8 @@ class MainViewModel : ObservableObject {
             debugPrint("Toggled favorites")
         }
     }
+    
+    // API RELATED FUNCTIONS
     
     public func getAPIKey() -> String? {
         self.keychain[keyValue]

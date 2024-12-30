@@ -8,15 +8,15 @@
 
 struct CurrencyInfo : Hashable {
     
-    static let symbols: [String: String] = [
+    static let symbols: [String: String] = [ // Dict of well known currencies
         "usd": "$",
         "eur": "€",
         "gbp": "£",
         "jpy": "¥",
     ]
     
-    let currencyRepresentation: String
-    let currencySymbol: String
+    let currencyRepresentation: String // Currency representation == usd, eur, gbp, jpy -> API needs those
+    let currencySymbol: String // Symbol for user
     
     init(_ currencyRepresentation: String) {
         self.currencyRepresentation = currencyRepresentation

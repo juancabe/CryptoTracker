@@ -7,18 +7,6 @@
 
 import Foundation
 
-struct BasicCrypto : Hashable {
-    let id: String
-    let name: String
-    let symbol: String
-    
-    init(id: String, name: String, symbol: String) {
-        self.id = id
-        self.name = name
-        self.symbol = symbol
-    }
-}
-
 class CryptoRetrieveService {
     private let baseURL: URL = URL(string: "https://api.coingecko.com/api/v3")!
     
@@ -28,17 +16,18 @@ class CryptoRetrieveService {
         return shared
     }
     
-    private var allCoinsBasic: [BasicCrypto]? = nil
+    private var allCoinsBasic: [BasicCrypto] = []
     private var pastCoinData: [CryptocurrencyData] = []
     
     private init(){}
     
     func getAllCoinsBasic(apiKey: String?) async -> [BasicCrypto] {
-        if let allCoinsBasic {
+        if !allCoinsBasic.isEmpty {
             return allCoinsBasic
         } else {
-            allCoinsBasic = await _getAllCoinsBasic(apiKey: apiKey)
-            if let allCoinsBasic {
+            let res = await _getAllCoinsBasic(apiKey: apiKey)
+            if let res {
+                allCoinsBasic = res
                 return allCoinsBasic
             } else {
                 allCoinsBasic = []
@@ -76,15 +65,16 @@ class CryptoRetrieveService {
         }
     }
     
-    func cryptoInfo(id: String, curr: CurrencyInfo, isSaved: Bool = false, isFavorite: Bool, apiKey: String?) async -> CryptoInfo? {
+    func cryptoInfo(id: String, curr: CurrencyInfo, isSaved: Bool = false, isFavorite: Bool, apiKey: String?, force: Bool = false) async -> CryptoInfo? {
         
         if(id.isEmpty) {
             return nil
         }
-        
-        for data in pastCoinData {
-            if(data.id == id) {
-                return CryptoInfo(data: data, curr: curr, isSaved: isSaved, isFavorite: isFavorite)
+        if !force {
+            for data in pastCoinData {
+                if(data.id == id) {
+                    return CryptoInfo(data: data, curr: curr, isSaved: isSaved, isFavorite: isFavorite)
+                }
             }
         }
         
