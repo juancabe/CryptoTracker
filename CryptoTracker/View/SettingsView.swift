@@ -22,10 +22,16 @@ struct SettingsView: View {
     @State private var vm: MainViewModel
     @State private var showingAlert = false
     @State private var selectedCurrency: String
+    @State private var alertMessage: String = ""
     
     init(vm: MainViewModel = MainViewModel()) {
         self.vm = vm
         self.selectedCurrency = vm.currency.currencyRepresentation
+    }
+    
+    func showAlert(message: String) {
+        alertMessage = message
+        showingAlert = true
     }
     
     var body: some View {
@@ -38,13 +44,13 @@ struct SettingsView: View {
                             .padding()
                         Button {
                             vm.saveAPIKey(apiKey: apiKey)
-                            showingAlert = true
+                            showAlert(message: "API Key Saved")
                             apiKey = ""
                         } label: {
                             Label("", systemImage: "arrow.down.circle.fill")
                         }
                         .disabled(apiKey.isEmpty)
-                        .alert("API Key Saved", isPresented: $showingAlert) {
+                        .alert(alertMessage, isPresented: $showingAlert) {
                                     Button("OK", role: .cancel) { }
                                 }
                         
@@ -80,11 +86,13 @@ struct SettingsView: View {
                     .padding()
                     Button("Delete API Key") {
                         vm.saveAPIKey(apiKey: nil)
+                        showAlert(message: "API Key Deleted")
                     }
                     .foregroundStyle(.red)
                 }
                 Section("Currency") {
                     Picker("Currency", selection: $selectedCurrency) {
+                        // Let user pick between well known currencies
                         ForEach(Array(CurrencyInfo.symbols.keys), id: \.self) {
                             Text("\($0) \(CurrencyInfo.symbols[$0]!)")
                         }

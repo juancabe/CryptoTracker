@@ -7,6 +7,7 @@
 
 import SwiftUI
 
+// Wraps chart functionality by providing neccesary view model
 struct ChartWrapperView: View {
     
     let vm: CryptoDetailViewModel
@@ -20,24 +21,24 @@ struct ChartWrapperView: View {
         self.vm = vm
         self.id = id
         self.days = days
-        self.mi = nil
+        self.mi = nil // mi = market info
     }
     
     var body: some View {
         NavigationView {
-            if(mi != nil && loaded) {
+            if(mi != nil && loaded) { // Data loaded successfully
                 MarketChartView(marketInfo: mi!)
-            } else if loaded {
+            } else if loaded { // VM finished loading and no data provided -> error
                 VStack {
                     Text("Error loading chart data")
                         .foregroundStyle(.red)
                         .font(.title)
-                    Text("Maybe api key doesn't have enough privileges to access this data?")
+                    Text("Maybe API key doesn't have enough privileges to access this data?")
                         .foregroundStyle(.red)
                         .opacity(0.7)
                         .padding([.horizontal], 30)
                 }
-            } else {
+            } else { // Show progress to user
                 ProgressView()
             }
         }.onAppear {

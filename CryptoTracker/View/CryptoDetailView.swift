@@ -31,15 +31,17 @@ struct CryptoDetailView: View {
     @StateObject private var viewModel: CryptoDetailViewModel
     @State var isSaved: Bool
     @State var dateFrom: Date = Date()
-    @State var showGraph: Bool = false
+    @State var showChart: Bool = false
     let id: String
 
+    // Initializer used in AddSaved view
     init(id: String, curr: CurrencyInfo, vm: MainViewModel, isSaved: Bool, isFavorite: Bool) {
         _viewModel = StateObject(wrappedValue: CryptoDetailViewModel(id: id, currency: curr, vm: vm, isFavorite: isFavorite))
         self.id = id
         self.isSaved = isSaved
     }
     
+    // Initializer used in PersonalList view
     init(info: CryptoInfo, vm: MainViewModel) {
         self.id = info.api_id
         self.isSaved = info.isSaved
@@ -59,6 +61,7 @@ struct CryptoDetailView: View {
         NavigationView {
             if viewModel.isLoaded {
                 if let cryptoInfo = viewModel.cryptoInfo {
+                    // Info available -> no error
                     ZStack {
                         Form {
                             Section("Crypto") {
@@ -74,6 +77,7 @@ struct CryptoDetailView: View {
                                 Row(fieldName: "Symbol", value: cryptoInfo.symbol)
                                 Row(fieldName: "Price", value: cryptoInfo.price)
                                 Row(fieldName: "% change 24h", value: cryptoInfo.priceChange)
+                                Row(fieldName: "Volume", value: cryptoInfo.volume)
                                 Row(fieldName: "Market Cap", value: cryptoInfo.marketCap)
                                 
                             }
@@ -84,7 +88,7 @@ struct CryptoDetailView: View {
                                 }
                             }
                             Section("Chart") {
-                                HStack{
+                                HStack{ // Select day from when data for chart is requested
                                     Text("Show data from").opacity(0.4)
                                     Spacer()
                                     DatePicker("", selection: $dateFrom, displayedComponents: .date)
@@ -99,7 +103,7 @@ struct CryptoDetailView: View {
                                         
                                         Button {
                                             withAnimation(.spring()) {
-                                                showGraph = true
+                                                showChart = true // Hides this view by overlapping chart
                                             }
                                         } label: {
                                             Image(systemName: "chart.line.uptrend.xyaxis")
@@ -110,16 +114,16 @@ struct CryptoDetailView: View {
                                 }
                             }
                         }
-                        if showGraph {
+                        if showChart {
                             let dayCount = Calendar.current.dateComponents([.day], from: dateFrom, to: Date()).day ?? 0
-                            ChartWrapperView(vm: viewModel, id: self.id, days: dayCount)
+                            ChartWrapperView(vm: viewModel, id: self.id, days: dayCount) // Chart view
                                 .transition(.move(edge: .bottom))
                             VStack {
                                 Spacer()
                                 HStack {
-                                    Button {
+                                    Button { // Button to close chart
                                         withAnimation(.bouncy) {
-                                            showGraph = false
+                                            showChart = false
                                         }
                                     } label: {
                                         Image(systemName: "plus.circle.fill")
@@ -137,7 +141,7 @@ struct CryptoDetailView: View {
                     Text("Failed to load crypto information.")
                         .foregroundColor(.red)
                 }
-            } else {
+            } else { // VM didn't load yet
                 Text("Loading...")
             }
         }
@@ -145,7 +149,7 @@ struct CryptoDetailView: View {
     }
 }
 #Preview {
-    CryptoDetailView(info: CryptoInfo(name: "testCrypto", symbol: "TEST", price: "123243.23 $", marketCap: "2.3B$",
+    CryptoDetailView(info: CryptoInfo(name: "testCrypto", symbol: "TEST", price: "123243.23 $", marketCap: "2.3B$", volume: "3",
         imageUrl: URL(filePath:
                         "https://coin-images.coingecko.com/coins/images/1/large/bitcoin.png?1696501400")!, priceChange: "-10%", isSaved: false, api_id: "t8ab", isFavorite: true))
 }

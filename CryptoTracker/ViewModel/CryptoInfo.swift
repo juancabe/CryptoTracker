@@ -15,16 +15,18 @@ class CryptoInfo : Identifiable, ObservableObject {
     let symbol: String
     let price: String
     let marketCap: String
+    let volume: String
     let imageUrl: URL?
     let priceChange: String
     var isSaved: Bool
     var isFavorite: Bool
     
-    init(name: String, symbol: String, price: String, marketCap: String, imageUrl: URL, priceChange: String, isSaved: Bool, api_id: String, isFavorite: Bool) {
+    init(name: String, symbol: String, price: String, marketCap: String, volume: String, imageUrl: URL, priceChange: String, isSaved: Bool, api_id: String, isFavorite: Bool) {
         self.name = name
         self.symbol = symbol
         self.price = price
         self.marketCap = marketCap
+        self.volume = volume
         self.imageUrl = imageUrl
         self.priceChange = priceChange
         self.isSaved = isSaved
@@ -48,11 +50,19 @@ class CryptoInfo : Identifiable, ObservableObject {
             self.marketCap = "No market cap provided"
         }
         
+        if let mcap = data.market_data.total_volume[curr.currencyRepresentation] {
+            self.volume = String(Int(mcap/1000000)) + "M " + curr.currencySymbol.uppercased()
+        } else {
+            self.volume = "No volume cap provided"
+        }
+        
         if let img = URL(string: data.image.large) {
             self.imageUrl = img
         } else {
             self.imageUrl = nil
         }
+        
+        
         
         self.priceChange = String(format: "%.2f", data.market_data.price_change_percentage_24h) + "%"
         self.isSaved = isSaved
@@ -71,5 +81,6 @@ class CryptoInfo : Identifiable, ObservableObject {
         self.isSaved = false
         self.api_id = "api_id"
         self.isFavorite = false
+        self.volume = "0 M USD"
     }
 }

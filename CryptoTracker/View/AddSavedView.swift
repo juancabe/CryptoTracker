@@ -27,10 +27,11 @@ struct AddSavedView: View {
                 Text("Searching for \(searchText)")
                 List {
                     ForEach(vm.allCryptoBasic, id: \.self) { item in
-                        if(item.symbol.lowercased() == searchText.lowercased() || item.name.lowercased() == searchText.lowercased()) {
+                        // Only show cryptos with name or symbol equal to user input
+                        if(item.symbol.lowercased() == searchText.lowercased() ||
+                           item.name.lowercased() == searchText.lowercased()) {
                             NavigationLink {
                                 CryptoDetailView(id: item.id, curr: currency, vm: vm, isSaved: false, isFavorite: false)
-                                
                             } label: {
                                 Text(item.name)
                             }

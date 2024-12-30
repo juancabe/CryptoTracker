@@ -8,6 +8,7 @@
 
 import SwiftUI
 
+// Specific ViewModel for CryptoDetail abstraction
 class CryptoDetailViewModel: ObservableObject {
     @Published var cryptoInfo: CryptoInfo? = nil
     @Published var isError: Bool = false
@@ -33,7 +34,7 @@ class CryptoDetailViewModel: ObservableObject {
         self.isFavorite = info.isFavorite
     }
     
-
+    // Fetches cryptoInfo from RetrieveService
     func fetchCryptoInfo(id: String) async {
         
         if(id.isEmpty) {
@@ -57,6 +58,7 @@ class CryptoDetailViewModel: ObservableObject {
         }
     }
     
+    // Fetches marketInfo for the selected days
     func getMarketInfo(days: Int, id: String) async -> MarketInfo? {
         let data = await CryptoRetrieveService.getInstance().marketData(id: id, curr: currency, days: days, apiKey: vm.getAPIKey())
         if let data {
@@ -66,6 +68,7 @@ class CryptoDetailViewModel: ObservableObject {
         return nil
     }
     
+    // Add saved crypto, will only be called when crypto wasn't alredy saved
     func addSaved(id: String) {
         vm.addSaved(id: id)
     }

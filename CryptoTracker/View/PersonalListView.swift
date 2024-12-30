@@ -18,14 +18,12 @@ struct PersonalListView: View {
                     NavigationSplitView {
                         // To keep list syncronized with vm.cryptoSavedInfo when adding item
                         Text("\($vm.cryptoSavedInfo.count)").opacity(0.0)
-                        if(vm.savedCrypto.isEmpty) {
+                        if(vm.savedCrypto.isEmpty) { // User hasn't saved any crypto yet
                             Text("No saved crypto").font(.headline).padding(.top, 300.0)
                             Text("Try saving some crypto").font(.subheadline).foregroundColor(.secondary)
-                        } else if !vm.isLoaded {
-                            Spacer()
+                        } else if !vm.isLoaded { // VM is still working, but may have available info to show
                             Text("Loading saved crypto info...").opacity(0.5)
                             ProgressView()
-                            Spacer()
                         }
                         // List of items stored on vm.cryptoSavedInfo
                         List {
@@ -50,7 +48,7 @@ struct PersonalListView: View {
                                         
                                     }
                                     .swipeActions (edge: .leading) {
-                                        Button {
+                                        Button { // Swipe right to add a favorite
                                             withAnimation {
                                                 vm.toggleFavorite(obj: item)
                                             }
@@ -60,7 +58,7 @@ struct PersonalListView: View {
                                         }
                                     }
                                     .swipeActions(edge: .trailing) {
-                                        Button(role: .destructive) {
+                                        Button(role: .destructive) { // Swipe left to delete favorite crypto
                                             withAnimation {
                                                 vm.deleteSaved(obj: item)
                                             }
@@ -83,6 +81,7 @@ struct PersonalListView: View {
                 }
                 .navigationTitle("Personal List")
                 
+                // Overlapping buttons
                 HStack {
                     Spacer()
                     VStack {

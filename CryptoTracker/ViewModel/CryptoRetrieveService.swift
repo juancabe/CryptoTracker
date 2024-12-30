@@ -21,17 +21,18 @@ class CryptoRetrieveService {
     
     private init(){}
     
+    // Public function that returns to the user allCoinsBasic data
     func getAllCoinsBasic(apiKey: String?) async -> [BasicCrypto] {
-        if !allCoinsBasic.isEmpty {
+        if !allCoinsBasic.isEmpty { // If data exists, return alredy fetched data
             return allCoinsBasic
         } else {
-            let res = await _getAllCoinsBasic(apiKey: apiKey)
+            let res = await _getAllCoinsBasic(apiKey: apiKey) // Fetch data
             if let res {
                 allCoinsBasic = res
                 return allCoinsBasic
             } else {
-                allCoinsBasic = []
-                return []
+                allCoinsBasic = [] // If failed, return empty array
+                return allCoinsBasic
             }
         }
     }
@@ -42,7 +43,7 @@ class CryptoRetrieveService {
         request.httpMethod = "GET"
         request.timeoutInterval = 10
         request.addValue("application/json", forHTTPHeaderField: "accept")
-        if let apiKey {
+        if let apiKey { // If API key is provided, use it.
             request.addValue(apiKey, forHTTPHeaderField: "x-cg-demo-api-key")
         }
         
@@ -66,13 +67,12 @@ class CryptoRetrieveService {
     }
     
     func cryptoInfo(id: String, curr: CurrencyInfo, isSaved: Bool = false, isFavorite: Bool, apiKey: String?, force: Bool = false) async -> CryptoInfo? {
-        
         if(id.isEmpty) {
             return nil
         }
-        if !force {
+        if !force { // Check wether user specifies to update data even if it was recently fetched
             for data in pastCoinData {
-                if(data.id == id) {
+                if(data.id == id) { // If data was recently fetched, return that chached data
                     return CryptoInfo(data: data, curr: curr, isSaved: isSaved, isFavorite: isFavorite)
                 }
             }
@@ -99,18 +99,19 @@ class CryptoRetrieveService {
             debugPrint("[cryptoInfo] Decoding error")
             return nil
         }
-        pastCoinData.append(decoded)
+        pastCoinData.append(decoded) // Append to chached data
         return CryptoInfo(data: decoded, curr: curr, isSaved: isSaved, isFavorite: isFavorite)
         
     }
     
+    // Returns marketData for specific crypto and for specific amount of days
     func marketData(id: String, curr: CurrencyInfo, days: Int, apiKey: String?) async -> MarketData? {
         
         let url = URL(string: "https://api.coingecko.com/api/v3/coins/\(id)/market_chart")!
         var components = URLComponents(url: url, resolvingAgainstBaseURL: true)!
         let queryItems: [URLQueryItem] = [
             URLQueryItem(name: "vs_currency", value: curr.currencyRepresentation),
-          URLQueryItem(name: "days", value: String(days)),
+            URLQueryItem(name: "days", value: String(days)),
         ]
         components.queryItems = components.queryItems.map { $0 + queryItems } ?? queryItems
         
@@ -122,7 +123,7 @@ class CryptoRetrieveService {
         if let apiKey {
             request.allHTTPHeaderFields = [
               "accept": "application/json",
-              "x-cg-demo-api-key": apiKey
+              "x-cg-demo-api-key": apiKey // If API key is specified, use it
             ]
         } else {
             request.allHTTPHeaderFields = [
@@ -146,6 +147,7 @@ class CryptoRetrieveService {
         return marketData 
     }
     
+    // Send req and return Data
     private func sendRequest(request: URLRequest) async -> Data? {
         var receivedData: Data? = nil
         do {
@@ -159,6 +161,7 @@ class CryptoRetrieveService {
         return receivedData
     }
     
+    // Decode data
     private func decodeData<T: Decodable>(receivedData: Data) async -> T? {
         // Decode
         let decoder = JSONDecoder()
@@ -195,7 +198,8 @@ class CryptoRetrieveService {
             return nil
         }
     }
-
+    
+    // Function to test wether certain API key is valid or not
     func testApiKey(apiKey: String) async -> Bool {
         let url = URL(string: "https://api.coingecko.com/api/v3/ping")!
         var request = URLRequest(url: url)

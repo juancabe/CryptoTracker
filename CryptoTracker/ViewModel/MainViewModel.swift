@@ -71,6 +71,7 @@ class MainViewModel : ObservableObject {
         self.currency = CurrencyInfo("usd")
     }
     
+    // Function to refresh internal state of observed collections
     func refresh() async {
         do {
             try await Task.sleep(nanoseconds: 500_000_000) // Little delay 0.5s for UI flow
@@ -197,7 +198,7 @@ class MainViewModel : ObservableObject {
         }
     }
     
-    // API RELATED FUNCTIONS
+    // API KEY RELATED FUNCTIONS
     
     public func getAPIKey() -> String? {
         self.keychain[keyValue]
