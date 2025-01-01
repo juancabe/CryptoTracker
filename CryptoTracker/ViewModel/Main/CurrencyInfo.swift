@@ -6,7 +6,7 @@
 //
 
 
-struct CurrencyInfo : Hashable {
+struct CurrencyInfo : Hashable, Codable {
     
     static let symbols: [String: String] = [ // Dict of well known currencies
         "usd": "$",

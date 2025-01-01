@@ -5,8 +5,11 @@
 //  Created by Juan Calzada Bernal on 1/1/25.
 //
 import Foundation
+import SwiftData
 
-struct Volatility : Alert {
+
+@Model
+class Volatility : Alert {
     private var active: Bool
     private var triggered: Bool
     private var expiration: Date
@@ -39,7 +42,7 @@ struct Volatility : Alert {
         }
     }
     
-    mutating func update(currentPrice: Double) {
+    func update(currentPrice: Double) {
         // Update the triggered status based on the price comparison
         
         let upperBound = initialPrice * (1 + volatilityThreshold)
@@ -49,12 +52,12 @@ struct Volatility : Alert {
         active = Date() < expiration
     }
     
-    mutating func isActive(currentPrice: Double) -> Bool {
+    func isActive(currentPrice: Double) -> Bool {
         update(currentPrice: currentPrice)
         return active
     }
     
-    mutating func isTriggered(currentPrice: Double) -> Bool {
+    func isTriggered(currentPrice: Double) -> Bool {
         update(currentPrice: currentPrice)
         return triggered
     }

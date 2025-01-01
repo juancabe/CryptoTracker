@@ -13,6 +13,9 @@ struct CryptoTrackerApp: App {
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([
             SavedCrypto.self,
+            // Alerts
+            PriceTarget.self,
+            Volatility.self,
         ])
         let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
 

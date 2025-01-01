@@ -6,8 +6,10 @@
 //
 
 import Foundation
+import SwiftData
 
-struct PriceTarget: Alert {
+@Model
+class PriceTarget: Alert {
     
     private var active: Bool
     private var triggered: Bool
@@ -41,18 +43,18 @@ struct PriceTarget: Alert {
         }
     }
     
-    mutating func update(currentPrice: Double) {
+    func update(currentPrice: Double) {
         // Update the triggered status based on the price comparison
         triggered = (initialPrice > targetPrice) ? (currentPrice < targetPrice) : (currentPrice > targetPrice)
         active = Date() < expiration
     }
     
-    mutating func isActive(currentPrice: Double) -> Bool {
+    func isActive(currentPrice: Double) -> Bool {
         update(currentPrice: currentPrice)
         return active
     }
     
-    mutating func isTriggered(currentPrice: Double) -> Bool {
+    func isTriggered(currentPrice: Double) -> Bool {
         update(currentPrice: currentPrice)
         return triggered
     }

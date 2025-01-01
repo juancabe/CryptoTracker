@@ -14,9 +14,9 @@ protocol Alert {
     func expiresAt() -> Date
     
     // THESE METHODS WILL UPDATE INTERNAL STATE
-    mutating func update(currentPrice: Double)
-    mutating func isActive(currentPrice: Double) -> Bool
-    mutating func isTriggered(currentPrice: Double) -> Bool
+    func update(currentPrice: Double)
+    func isActive(currentPrice: Double) -> Bool
+    func isTriggered(currentPrice: Double) -> Bool
     
     
 }
