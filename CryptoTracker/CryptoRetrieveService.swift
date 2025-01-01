@@ -147,6 +147,39 @@ class CryptoRetrieveService {
         return marketData 
     }
     
+    func cryptoPrice(id: String, curr: CurrencyInfo, apiKey: String) async -> Double? {
+        let url = URL(string: "https://api.coingecko.com/api/v3/simple/price")!
+        var components = URLComponents(url: url, resolvingAgainstBaseURL: true)!
+        let queryItems: [URLQueryItem] = [
+          URLQueryItem(name: "ids", value: id),
+          URLQueryItem(name: "vs_currencies", value: curr.currencyRepresentation),
+        ]
+        components.queryItems = components.queryItems.map { $0 + queryItems } ?? queryItems
+
+        var request = URLRequest(url: components.url!)
+        request.httpMethod = "GET"
+        request.timeoutInterval = 10
+        request.allHTTPHeaderFields = [
+          "accept": "application/json",
+          "x-cg-demo-api-key": apiKey
+        ]
+        
+        debugPrint("Fetching url \(components.url!)")
+        
+        guard let receivedData = await sendRequest(request: request) else {
+            debugPrint("[marketData] Networking error")
+            return nil
+        }
+        
+        guard let cp: CryptoPrice = await decodeData(receivedData: receivedData) else {
+            debugPrint("[marketData] Decoding error")
+            return nil
+        }
+        
+        return cp.crypto.price
+
+    }
+    
     // Send req and return Data
     private func sendRequest(request: URLRequest) async -> Data? {
         var receivedData: Data? = nil
@@ -157,6 +190,7 @@ class CryptoRetrieveService {
             print("Couldn't get a proper response: \(error)")
             return nil
         }
+        
         
         return receivedData
     }
