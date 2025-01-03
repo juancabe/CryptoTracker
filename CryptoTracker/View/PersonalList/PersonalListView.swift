@@ -21,68 +21,85 @@ struct PersonalListView: View {
                         if(vm.savedCrypto.isEmpty) { // User hasn't saved any crypto yet
                             Text("No saved crypto").font(.headline).padding(.top, 300.0)
                             Text("Try saving some crypto").font(.subheadline).foregroundColor(.secondary)
-                        } else if !vm.isLoaded { // VM is still working, but may have available info to show
-                            Text("Loading saved crypto info...").opacity(0.5)
-                            ProgressView()
                         }
                         // List of items stored on vm.cryptoSavedInfo
-                        List {
-                            ForEach($vm.cryptoSavedInfo) { $item in
-                                if(!vm.justFavorites || item.isFavorite) {
-                                    NavigationLink {
-                                        CryptoDetailView(info: item, vm: vm)
-                                    } label: {
-                                        ZStack {
-                                            CryptoListItemView(crypto: item)
-                                            if(item.isFavorite) {
-                                                HStack {
-                                                    VStack {
-                                                        Image(systemName: "star.fill")
-                                                            .foregroundStyle(.yellow)
+                        
+                        if(!vm.isLoaded) {
+                            Spacer()
+                            ProgressView()
+                            Spacer()
+                        } else {
+                            List {
+                                ForEach($vm.cryptoSavedInfo) { $item in
+                                    if(!vm.justFavorites || item.isFavorite) {
+                                        NavigationLink {
+                                            CryptoDetailView(info: item, vm: vm)
+                                        } label: {
+                                            ZStack {
+                                                CryptoListItemView(crypto: item)
+                                                if(item.isFavorite) {
+                                                    HStack {
+                                                        VStack {
+                                                            Image(systemName: "star.fill")
+                                                                .foregroundStyle(.yellow)
+                                                            Spacer()
+                                                        }
                                                         Spacer()
                                                     }
-                                                    Spacer()
                                                 }
                                             }
-                                        }
-                                        
-                                    }
-                                    .swipeActions (edge: .leading) {
-                                        Button { // Swipe right to add a favorite
-                                            withAnimation {
-                                                vm.toggleFavorite(obj: item)
-                                            }
-                                        } label: {
-                                            Label("Custom", systemImage: "star")
-                                                .foregroundStyle(.yellow)
-                                        }
-                                    }
-                                    .swipeActions(edge: .trailing) {
-                                        Button(role: .destructive) { // Swipe left to delete favorite crypto
-                                            withAnimation {
-                                                vm.deleteSaved(obj: item)
-                                            }
                                             
-                                        } label: {
-                                            Label("Delete", systemImage: "trash")
+                                        }
+                                        .swipeActions (edge: .leading) {
+                                            Button { // Swipe right to add a favorite
+                                                withAnimation {
+                                                    vm.toggleFavorite(obj: item)
+                                                }
+                                            } label: {
+                                                Label("Custom", systemImage: "star")
+                                                    .foregroundStyle(.yellow)
+                                            }
+                                        }
+                                        .swipeActions(edge: .trailing) {
+                                            Button(role: .destructive) { // Swipe left to delete favorite crypto
+                                                withAnimation {
+                                                    vm.deleteSaved(obj: item)
+                                                }
+                                                
+                                            } label: {
+                                                Label("Delete", systemImage: "trash")
+                                            }
                                         }
                                     }
                                 }
                             }
                         }
                         
+                        
                     } detail: {
                         Text("Select an item")
-                    }
-                    .refreshable {
-                        // Call ViewModel to refresh
-                        await vm.refresh()
                     }
                 }
                 .navigationTitle("Personal List")
                 
                 // Overlapping buttons
                 HStack {
+                    VStack { // Button for refreshing
+                        Spacer()
+                        Button {
+                            Task {
+                                await startSpinningAndUpdate()
+                            }
+                        } label: {
+                            Image(systemName: "arrow.clockwise.circle.fill")
+                                .font(.system(size: 50))
+                                .rotationEffect(!vm.isLoaded ? .degrees(360) : .degrees(0))
+                                .animation(!vm.isLoaded ? .linear(duration: 1).repeatForever(autoreverses: false) : .default, value: !vm.isLoaded)
+                        }
+                        .background(.clear)
+                        .disabled(!vm.isLoaded)
+                    }
+                    .padding([.leading], 20)
                     Spacer()
                     VStack {
                         Spacer()
@@ -97,7 +114,6 @@ struct PersonalListView: View {
                                     .font(.system(size: 50))
                             }
                         }
-                        .padding(.trailing, 20.0)
                         .background(.clear)
                         NavigationLink { // NavLink for adding saved crypto
                             AddSavedView(vm: vm)
@@ -105,11 +121,17 @@ struct PersonalListView: View {
                             Image(systemName: "plus.circle.fill")
                                 .font(.system(size: 50))
                         }
-                        .padding(.trailing, 20.0)
                         .background(.clear)
                     }
+                    .padding([.trailing], 20)
                 }
             }
+        }
+    }
+    
+    private func startSpinningAndUpdate() async {
+        if vm.isLoaded {
+            await vm.refresh()
         }
     }
     

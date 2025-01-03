@@ -60,7 +60,7 @@ struct AlertsView: View {
                 
                 // Overlapped button
                 HStack {
-                    VStack {
+                    VStack { // Button for refreshing
                         Spacer()
                         Button {
                             Task {
@@ -72,15 +72,15 @@ struct AlertsView: View {
                                 .rotationEffect(vm.isUpdating ? .degrees(360) : .degrees(0))
                                 .animation(vm.isUpdating ? .linear(duration: 1).repeatForever(autoreverses: false) : .default, value: vm.isUpdating)
                         }
-                        .padding(.leading, 20.0)
                         .background(.clear)
                         .disabled(vm.isUpdating)
                     }
                     .padding([.bottom], 40)
+                    .padding([.leading], 20)
                     
                     Spacer()
                     
-                    VStack {
+                    VStack { // Button for adding new alert
                         Spacer()
                         NavigationLink { // NavLink for adding alert
                             AddAlertView(vm: vm)
@@ -88,10 +88,10 @@ struct AlertsView: View {
                             Image(systemName: "plus.circle.fill")
                                 .font(.system(size: 50))
                         }
-                        .padding(.trailing, 20.0)
                         .background(.clear)
                     }
                     .padding([.bottom], 40)
+                    .padding([.trailing], 20)
                 }
             }
             .navigationTitle("Alerts")

@@ -39,7 +39,7 @@ struct AlertRow: View {
             AlertStateImage(isActive: alert.isActive(currentPrice: price), isTriggered: alert.isTriggered(currentPrice: price))
             NameAndDate(id: alert.cryptoId, expirationDate: alert.expiresAt())
             Spacer()
-            InitialPriceAndTarget(target: target, targetDecimals: targetDecimals, targetUnit: targetUnit, initialPrice: alert.initialPrice, currencySymbol: alert.currency.currencySymbol)
+            PricesAndTarget(target: target, targetDecimals: targetDecimals, targetUnit: targetUnit, initialPrice: alert.initialPrice, currencySymbol: alert.currency.currencySymbol, currentPrice: price)
         }
     }
 }

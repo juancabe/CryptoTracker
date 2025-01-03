@@ -69,6 +69,7 @@ class MainViewModel : ObservableObject {
     
     // Function to refresh internal state of observed collections
     func refresh() async {
+        isLoaded = false
         do {
             try await Task.sleep(nanoseconds: 500_000_000) // Little delay 0.5s for UI flow
         } catch {
@@ -84,6 +85,8 @@ class MainViewModel : ObservableObject {
         } else {
             debugPrint("Didn't refresh")
         }
+        
+        isLoaded = true
     }
     
     func justFavoritesToggle() {
