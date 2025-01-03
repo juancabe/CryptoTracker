@@ -20,11 +20,6 @@
 			path = CryptoTracker;
 			sourceTree = "<group>";
 		};
-		EDDF44EA2D1993CC0039101B /* Model */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = Model;
-			sourceTree = "<group>";
-		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -44,7 +39,6 @@
 			children = (
 				EDDF44D72D1993970039101B /* CryptoTracker */,
 				EDDF44D62D1993970039101B /* Products */,
-				EDDF44EA2D1993CC0039101B /* Model */,
 			);
 			sourceTree = "<group>";
 		};
@@ -73,7 +67,6 @@
 			);
 			fileSystemSynchronizedGroups = (
 				EDDF44D72D1993970039101B /* CryptoTracker */,
-				EDDF44EA2D1993CC0039101B /* Model */,
 			);
 			name = CryptoTracker;
 			packageProductDependencies = (

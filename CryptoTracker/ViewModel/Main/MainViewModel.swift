@@ -7,17 +7,11 @@
 
 import Foundation
 import SwiftData
-import KeychainAccess
 import SwiftUICore
 
 @Observable
 class MainViewModel : ObservableObject {
-    
-    // Keychain constants
-    private let bundleName = "juancabe.CryptoTracker"
-    private let keyValue = "apiKey"
-    private let keychain: Keychain
-    
+        
     var isLoaded: Bool = false
     var justFavorites: Bool = false
     private var modelContext: ModelContext?
@@ -50,7 +44,6 @@ class MainViewModel : ObservableObject {
     // Default init
     init(modelContext: ModelContext) {
         self.modelContext = modelContext
-        self.keychain = Keychain(service: bundleName)
         if let value = defaults.string(forKey: "currency") {
             currency = CurrencyInfo(value)
         } else {
@@ -67,8 +60,11 @@ class MainViewModel : ObservableObject {
     // Empty init, for previews
     init() {
         self.modelContext = nil
-        self.keychain = Keychain(service: bundleName)
         self.currency = CurrencyInfo("usd")
+    }
+    
+    func CRGI() -> CryptoRetrieveService {
+        return CryptoRetrieveService.getInstance()
     }
     
     // Function to refresh internal state of observed collections
@@ -115,7 +111,7 @@ class MainViewModel : ObservableObject {
                 $0.id == data.id
             }) {
                 let isFavorite: Bool = savedCrypto[index].favorite
-                if let info = await CryptoRetrieveService.getInstance().cryptoInfo(id: data.id, curr: currency, isSaved: true, isFavorite: isFavorite, apiKey: getAPIKey(), force: force) {
+                if let info = await CRGI().cryptoInfo(id: data.id, curr: currency, isSaved: true, isFavorite: isFavorite, apiKey: CRGI().getAPIKey(), force: force) {
                     cryptoSavedInfo.append(info)
                 } else {
                     debugPrint("[buildCryptoList] couldn't retrieve info for \(data.id)")
@@ -126,7 +122,7 @@ class MainViewModel : ObservableObject {
     
     // Fetch data from API
     private func fetchAllCryptoBasic() async {
-        allCryptoBasic = await CryptoRetrieveService.getInstance().getAllCoinsBasic(apiKey: getAPIKey())
+        allCryptoBasic = await CRGI().getAllCoinsBasic(apiKey: CRGI().getAPIKey())
         await buildCryptoList()
     }
     
@@ -144,7 +140,7 @@ class MainViewModel : ObservableObject {
         debugPrint("Inserted new item")
         fetchSaved()
         Task {
-             if let info = await CryptoRetrieveService.getInstance().cryptoInfo(id: id, curr: currency, isFavorite: newItem.favorite, apiKey: getAPIKey()) {
+            if let info = await CRGI().cryptoInfo(id: id, curr: currency, isFavorite: newItem.favorite, apiKey: CRGI().getAPIKey()) {
                  cryptoSavedInfo.append(info)
                  debugPrint("Inserted saved info")
              } else {
@@ -195,25 +191,6 @@ class MainViewModel : ObservableObject {
                 cryptoSavedInfo[inList].isFavorite.toggle()
             }
             debugPrint("Toggled favorites")
-        }
-    }
-    
-    // API KEY RELATED FUNCTIONS
-    
-    public func getAPIKey() -> String? {
-        self.keychain[keyValue]
-    }
-    
-    public func saveAPIKey(apiKey: String?) {
-        self.keychain[keyValue] = apiKey
-    }
-    
-    public func testAPIKey() async -> Bool {
-        if let apiKey = getAPIKey() {
-            return await CryptoRetrieveService.getInstance().testApiKey(apiKey: apiKey)
-        } else {
-            debugPrint("API key not found")
-            return false
         }
     }
 }

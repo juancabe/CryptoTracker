@@ -46,7 +46,7 @@ class CryptoDetailViewModel: ObservableObject {
             }
         }
         
-        let response = await CryptoRetrieveService.getInstance().cryptoInfo(id: id, curr: currency, isFavorite: isFavorite, apiKey: vm.getAPIKey())
+        let response = await CryptoRetrieveService.getInstance().cryptoInfo(id: id, curr: currency, isFavorite: isFavorite, apiKey: vm.CRGI().getAPIKey())
         DispatchQueue.main.async {
             if let response {
                 self.cryptoInfo = response
@@ -60,7 +60,7 @@ class CryptoDetailViewModel: ObservableObject {
     
     // Fetches marketInfo for the selected days
     func getMarketInfo(days: Int, id: String) async -> MarketInfo? {
-        let data = await CryptoRetrieveService.getInstance().marketData(id: id, curr: currency, days: days, apiKey: vm.getAPIKey())
+        let data = await CryptoRetrieveService.getInstance().marketData(id: id, curr: currency, days: days, apiKey: vm.CRGI().getAPIKey())
         if let data {
             let info = MarketInfo(from: data)
             return info

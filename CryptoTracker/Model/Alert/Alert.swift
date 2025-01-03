@@ -6,10 +6,12 @@
 //
 
 import Foundation
+import SwiftData
 
-protocol Alert {
+protocol Alert : PersistentModel {
     
     var currency: CurrencyInfo { get }
+    var initialPrice: Double { get }
     var cryptoId: String { get }
     func expiresAt() -> Date
     

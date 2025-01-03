@@ -5,8 +5,8 @@
 //  Created by Juan Calzada Bernal on 23/12/24.
 //
 
-import SwiftUI
 import SwiftData
+import SwiftUI
 
 @main
 struct CryptoTrackerApp: App {

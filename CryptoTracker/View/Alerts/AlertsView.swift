@@ -6,27 +6,106 @@
 //
 
 import SwiftUI
+import SwiftData
 
 struct AlertsView: View {
     
-    @State var vm: AlertsViewModel
+    @ObservedObject private var vm: AlertsViewModel
     
-    init(_ vm: AlertsViewModel) {
-        self.vm = vm
+    init(_ mc: ModelContext? = nil) {
+        if let mc {
+            self.vm = .init(mc)
+        } else {
+            self.vm = .init()
+        }
     }
-    
     var body: some View {
         NavigationView {
-            List {
-                ForEach(vm.alerts) { alert in
-                    AlertRow(alert: alert)
+            ZStack {
+                TabView {
+                    HStack {
+                        if vm.isUpdating {
+                            ProgressView()
+                        } else if(vm.volatilityAlerts.isEmpty) {
+                            Text("No alerts")
+                        } else {
+                            AlertList(list: vm.volatilityAlerts, vm: vm)
+                        }
+                    }
+                    .tabItem {
+                        Label("Volatility", systemImage: "chart.line.uptrend.xyaxis")
+                    }
+                    
+                    HStack {
+                        if vm.isUpdating {
+                            ProgressView()
+                        } else if(vm.priceAlerts.isEmpty) {
+                            Text("No alerts")
+                        } else {
+                            AlertList(list: vm.priceAlerts, vm: vm)
+                        }
+                    }
+                    .tabItem {
+                        Label("Price Targets", systemImage: "dollarsign.arrow.trianglehead.counterclockwise.rotate.90")
+                    }
+                }
+                .onAppear {
+                    // Update available ids when Alerts tab is selected
+                    // because new cryptos may have been added
+                    Task {
+                        await startSpinningAndUpdate()
+                    }
+                }
+                .padding([.top], 30)
+                
+                // Overlapped button
+                HStack {
+                    VStack {
+                        Spacer()
+                        Button {
+                            Task {
+                                await startSpinningAndUpdate()
+                            }
+                        } label: {
+                            Image(systemName: "arrow.clockwise.circle.fill")
+                                .font(.system(size: 50))
+                                .rotationEffect(vm.isUpdating ? .degrees(360) : .degrees(0))
+                                .animation(vm.isUpdating ? .linear(duration: 1).repeatForever(autoreverses: false) : .default, value: vm.isUpdating)
+                        }
+                        .padding(.leading, 20.0)
+                        .background(.clear)
+                        .disabled(vm.isUpdating)
+                    }
+                    .padding([.bottom], 40)
+                    
+                    Spacer()
+                    
+                    VStack {
+                        Spacer()
+                        NavigationLink { // NavLink for adding alert
+                            AddAlertView(vm: vm)
+                        } label: {
+                            Image(systemName: "plus.circle.fill")
+                                .font(.system(size: 50))
+                        }
+                        .padding(.trailing, 20.0)
+                        .background(.clear)
+                    }
+                    .padding([.bottom], 40)
                 }
             }
             .navigationTitle("Alerts")
         }
     }
+    
+    /// Starts spinning animation and performs the update asynchronously.
+    private func startSpinningAndUpdate() async {
+        if !vm.isUpdating {
+            await vm.update()
+        }
+    }
 }
 
 #Preview {
-    AlertsView(AlertsViewModel())
+    AlertsView()
 }

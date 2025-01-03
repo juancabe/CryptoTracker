@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import KeychainAccess
 
 class CryptoRetrieveService {
     private let baseURL: URL = URL(string: "https://api.coingecko.com/api/v3")!
@@ -19,7 +20,33 @@ class CryptoRetrieveService {
     private var allCoinsBasic: [BasicCrypto] = []
     private var pastCoinData: [CryptocurrencyData] = []
     
-    private init(){}
+    // Keychain constants
+    private let bundleName = "juancabe.CryptoTracker"
+    private let keyValue = "apiKey"
+    private let keychain: Keychain
+    
+    private init(){
+        self.keychain = Keychain(service: bundleName)
+    }
+    
+    // API KEY RELATED FUNCTIONS
+    
+    public func getAPIKey() -> String? {
+        self.keychain[keyValue]
+    }
+    
+    public func saveAPIKey(apiKey: String?) {
+        self.keychain[keyValue] = apiKey
+    }
+    
+    public func testAPIKey() async -> Bool {
+        if let apiKey = getAPIKey() {
+            return await CryptoRetrieveService.getInstance().testApiKey(apiKey: apiKey)
+        } else {
+            debugPrint("API key not found")
+            return false
+        }
+    }
     
     // Public function that returns to the user allCoinsBasic data
     func getAllCoinsBasic(apiKey: String?) async -> [BasicCrypto] {
@@ -147,7 +174,7 @@ class CryptoRetrieveService {
         return marketData 
     }
     
-    func cryptoPrice(id: String, curr: CurrencyInfo, apiKey: String) async -> Double? {
+    func cryptoPrice(id: String, curr: CurrencyInfo, apiKey: String?) async -> Double? {
         let url = URL(string: "https://api.coingecko.com/api/v3/simple/price")!
         var components = URLComponents(url: url, resolvingAgainstBaseURL: true)!
         let queryItems: [URLQueryItem] = [
@@ -159,10 +186,18 @@ class CryptoRetrieveService {
         var request = URLRequest(url: components.url!)
         request.httpMethod = "GET"
         request.timeoutInterval = 10
-        request.allHTTPHeaderFields = [
-          "accept": "application/json",
-          "x-cg-demo-api-key": apiKey
-        ]
+        
+        
+        if let apiKey {
+            request.allHTTPHeaderFields = [
+              "accept": "application/json",
+              "x-cg-demo-api-key": apiKey
+            ]
+        } else {
+            request.allHTTPHeaderFields = [
+              "accept": "application/json",
+            ]
+        }
         
         debugPrint("Fetching url \(components.url!)")
         
@@ -171,13 +206,37 @@ class CryptoRetrieveService {
             return nil
         }
         
-        guard let cp: CryptoPrice = await decodeData(receivedData: receivedData) else {
-            debugPrint("[marketData] Decoding error")
+        let receivedDataString = String(data: receivedData, encoding: .utf8)!
+        debugPrint("Received data: \(receivedDataString)")
+        return getPrice(curr: curr.currencyRepresentation, data: receivedDataString)
+    }
+
+    private func getPrice(curr: String, data: String) -> Double? {
+        // Construct regex pattern to match the "curr" key and capture its value
+        let pattern = "\"\(curr)\"\\s*:\\s*(\\d+(\\.\\d+)?)"
+        
+        // Create the regular expression
+        guard let regex = try? NSRegularExpression(pattern: pattern, options: []) else {
+            print("Invalid regex pattern.")
             return nil
         }
         
-        return cp.crypto.price
-
+        // Define the range for the search
+        let range = NSRange(location: 0, length: data.utf16.count)
+        
+        // Search for the first match
+        if let match = regex.firstMatch(in: data, options: [], range: range) {
+            // Extract the captured value
+            if let priceRange = Range(match.range(at: 1), in: data) {
+                let priceString = String(data[priceRange])
+                if let price = Double(priceString) {
+                    return price
+                }
+            }
+        }
+        
+        // Return 0.0 if no match is found or conversion fails
+        return nil
     }
     
     // Send req and return Data

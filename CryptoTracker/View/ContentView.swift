@@ -12,12 +12,11 @@ struct ContentView: View {
     
     private var modelContext: ModelContext? = nil
     private var mvm: MainViewModel
-    private var avm: AlertsViewModel
 
     @State private var selectedTab = 1
     var body: some View {
         TabView(selection: $selectedTab) {
-            AlertsView(avm)
+            AlertsView(modelContext)
                 .tabItem {
                     Label("Alerts", systemImage: "bell")
                 }
@@ -41,10 +40,8 @@ struct ContentView: View {
         self.modelContext = modelContext
         if let modelContext {
             self.mvm = MainViewModel(modelContext: modelContext)
-            self.avm = AlertsViewModel(modelContext)
         } else {
             self.mvm = MainViewModel()
-            self.avm = AlertsViewModel()
         }
     }
 
