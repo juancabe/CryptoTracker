@@ -32,6 +32,8 @@ struct AddAlertView: View {
     
     @State private var state: AddState = .notSent
     
+    @State private var notifsEnabled: Bool = false
+    
     init(vm: AlertsViewModel) {
         self.vm = vm
         if !vm.ids.isEmpty {
@@ -83,6 +85,7 @@ struct AddAlertView: View {
                     
                     Section("Expiration date") {
                         DatePicker("Expiration date", selection: $expirationDate)
+                        Toggle("Enable notifications", isOn: $notifsEnabled)
                     }
                     
                     Section("Alert type") {
@@ -125,9 +128,9 @@ struct AddAlertView: View {
                             var res: Bool
                             switch selectedAlertType {
                             case .VolatilityAlert:
-                                res = await vm.addVolatilityAlert(expiration: expirationDate, volatilityThreshold: Double(doubleString)!, cryptoId: id, curr: currInfo)
+                                res = await vm.addVolatilityAlert(expiration: expirationDate, volatilityThreshold: Double(doubleString)!, cryptoId: id, curr: currInfo, notification: notifsEnabled)
                             case .PriceTargetAlert:
-                                res = await vm.addPriceTargetAlert(expiration: expirationDate, targetPrice: Double(doubleString)!, cryptoId: id, currency: currInfo)
+                                res = await vm.addPriceTargetAlert(expiration: expirationDate, targetPrice: Double(doubleString)!, cryptoId: id, currency: currInfo, notification: notifsEnabled)
                             }
                             state = res ? .succcess : .failure
                             showAlert(message: state == .failure ? "Could not add alert" : "Alert added successfully")

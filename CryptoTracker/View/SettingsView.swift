@@ -23,6 +23,7 @@ struct SettingsView: View {
     @State private var showingAlert = false
     @State private var selectedCurrency: String
     @State private var alertMessage: String = ""
+    @State private var notificationsEnabled: Bool?
     
     init(vm: MainViewModel = MainViewModel()) {
         self.vm = vm
@@ -99,6 +100,35 @@ struct SettingsView: View {
                     }
                     .onChange(of: selectedCurrency) {
                         vm.setCurrencyInfo(CurrencyInfo(selectedCurrency))
+                    }
+                }
+                Section("Notifications") {
+                    Text("Receive notifications when alerts expire")
+                        .foregroundStyle(.secondary)
+                    if let n = notificationsEnabled, n == false {
+                        Text("In order to receive notifications you need to enable them.")
+                            .foregroundStyle(.secondary)
+                            .padding()
+                        Button("Enable notifications") {
+                            Task {
+                                notificationsEnabled = await NotificationsService.instance.requestAuthorization()
+                            }
+                        }
+                    } else if let n = notificationsEnabled, n {
+                        HStack {
+                            Text("Notifications enabled")
+                            Image(systemName: "checkmark")
+                                .font(.headline)
+                                .foregroundStyle(.green)
+                        }
+                    } else {
+                        ProgressView()
+                    }
+                    
+                }
+                .onAppear {
+                    Task {
+                        notificationsEnabled = await NotificationsService.instance.notificationsEnabled()
                     }
                 }
             }.navigationTitle("Settings")

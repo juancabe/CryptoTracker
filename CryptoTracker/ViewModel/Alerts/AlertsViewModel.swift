@@ -123,6 +123,7 @@ class AlertsViewModel : ObservableObject{
     
     func deleteAlert<T: Alert & Equatable & PersistentModel>(_ alert: T) {
         modelContext!.delete(alert)
+        removeNotification(alertHash: alert.hashValue)
         if T.self == Volatility.self {
             volatilityAlerts.removeAll { $0 == alert as! Volatility }
         } else if T.self == PriceTarget.self {
@@ -135,7 +136,7 @@ class AlertsViewModel : ObservableObject{
         
     }
     
-    func addVolatilityAlert(expiration: Date, volatilityThreshold: Double, cryptoId: String, curr: CurrencyInfo)
+    func addVolatilityAlert(expiration: Date, volatilityThreshold: Double, cryptoId: String, curr: CurrencyInfo, notification: Bool)
     async -> Bool
     {
         guard let currentPrice = await CryptoRetrieveService
@@ -152,12 +153,19 @@ class AlertsViewModel : ObservableObject{
         modelContext!.insert(alert)
         
         try! modelContext!.save()
+        if notification {
+            addNotification(alertType: "Volatility alert",
+                            cryptoId: cryptoId.uppercased(),
+                            target: String(format: "%.2f%% volatility", volatilityThreshold),
+                            alertHash: alert.hashValue,
+                            alertExpiration: expiration)
+        }
         volatilityAlerts.append(alert)
         return true
         
     }
     
-    func addPriceTargetAlert(expiration: Date, targetPrice: Double, cryptoId: String, currency: CurrencyInfo)
+    func addPriceTargetAlert(expiration: Date, targetPrice: Double, cryptoId: String, currency: CurrencyInfo, notification: Bool)
     async -> Bool
     {
         guard let currentPrice = await CryptoRetrieveService
@@ -170,6 +178,29 @@ class AlertsViewModel : ObservableObject{
         
         try! modelContext!.save()
         priceAlerts.append(alert)
+        if notification {
+            addNotification(alertType: "Price target alert",
+                            cryptoId: cryptoId.uppercased(),
+                            target: String(format: "%.2f %@", targetPrice, currency.currencySymbol),
+                            alertHash: alert.hashValue,
+                            alertExpiration: expiration)
+        }
         return true
+    }
+    
+    func addNotification(alertType: String, cryptoId: String, target: String, alertHash: Int, alertExpiration: Date) {
+        let identifier =  String(alertHash)
+        
+        // Debug print the notification details
+        debugPrint("Notification will look like: \(alertType) expired for \(cryptoId), Target: \(target), Expiration: \(alertExpiration)")
+
+        NotificationsService.instance.addNotification(identifier: identifier,
+                                                      title: alertType + " expired for " + cryptoId,
+                                                      subtitle: "Check if the target " + target + " has been reached",
+                                                      when: alertExpiration)
+    }
+    
+    func removeNotification(alertHash: Int) {
+        NotificationsService.instance.removeNotification(identifier: String(alertHash))
     }
 }
