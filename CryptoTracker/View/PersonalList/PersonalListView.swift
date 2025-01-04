@@ -10,8 +10,7 @@ import SwiftData
 
 struct PersonalListView: View {
     @State public var vm: MainViewModel
-    @State private var isDetailViewActive = false
-
+    
     var body: some View {
         NavigationView {
             ZStack {
@@ -33,7 +32,7 @@ struct PersonalListView: View {
                             List {
                                 ForEach($vm.cryptoSavedInfo) { $item in
                                     if(!vm.justFavorites || item.isFavorite) {
-                                        NavigationLink (isActive: $isDetailViewActive) {
+                                        NavigationLink {
                                             CryptoDetailView(info: item, vm: vm)
                                         } label: {
                                             ZStack {
@@ -57,7 +56,7 @@ struct PersonalListView: View {
                                                     vm.toggleFavorite(obj: item)
                                                 }
                                             } label: {
-                                                Label("Custom", systemImage: "star")
+                                                Label("Favorite", systemImage: "star")
                                                     .foregroundStyle(.yellow)
                                             }
                                         }
@@ -84,51 +83,48 @@ struct PersonalListView: View {
                 .navigationTitle("Personal List")
                 
                 // Overlapping buttons
-                if !isDetailViewActive {
-                    HStack {
-                        VStack { // Button for refreshing
-                            Spacer()
-                            Button {
-                                Task {
-                                    await startSpinningAndUpdate()
-                                }
-                            } label: {
-                                Image(systemName: "arrow.clockwise.circle.fill")
-                                    .font(.system(size: 50))
-                                    .rotationEffect(!vm.isLoaded ? .degrees(360) : .degrees(0))
-                                    .animation(!vm.isLoaded ? .linear(duration: 1).repeatForever(autoreverses: false) : .default, value: !vm.isLoaded)
-                            }
-                            .background(.clear)
-                            .disabled(!vm.isLoaded)
-                        }
-                        .padding([.leading], 20)
+                HStack {
+                    VStack { // Button for refreshing
                         Spacer()
-                        VStack {
-                            Spacer()
-                            Button { // Button for displaying favorites only
-                                vm.justFavoritesToggle()
-                            } label: {
-                                if (vm.justFavorites) {
-                                    Image(systemName: "star.circle.fill")
-                                        .font(.system(size: 50))
-                                } else {
-                                    Image(systemName: "star.circle")
-                                        .font(.system(size: 50))
-                                }
+                        Button {
+                            Task {
+                                await startSpinningAndUpdate()
                             }
-                            .background(.clear)
-                            NavigationLink { // NavLink for adding saved crypto
-                                AddSavedView(vm: vm)
-                            } label: {
-                                Image(systemName: "plus.circle.fill")
+                        } label: {
+                            Image(systemName: "arrow.clockwise.circle.fill")
+                                .font(.system(size: 50))
+                                .rotationEffect(!vm.isLoaded ? .degrees(360) : .degrees(0))
+                                .animation(!vm.isLoaded ? .linear(duration: 1).repeatForever(autoreverses: false) : .default, value: !vm.isLoaded)
+                        }
+                        .background(.clear)
+                        .disabled(!vm.isLoaded)
+                    }
+                    .padding([.leading], 20)
+                    Spacer()
+                    VStack {
+                        Spacer()
+                        Button { // Button for displaying favorites only
+                            vm.justFavoritesToggle()
+                        } label: {
+                            if (vm.justFavorites) {
+                                Image(systemName: "star.circle.fill")
+                                    .font(.system(size: 50))
+                            } else {
+                                Image(systemName: "star.circle")
                                     .font(.system(size: 50))
                             }
-                            .background(.clear)
                         }
-                        .padding([.trailing], 20)
+                        .background(.clear)
+                        NavigationLink { // NavLink for adding saved crypto
+                            AddSavedView(vm: vm)
+                        } label: {
+                            Image(systemName: "plus.circle.fill")
+                                .font(.system(size: 50))
+                        }
+                        .background(.clear)
                     }
+                    .padding([.trailing], 20)
                 }
-                
             }
         }
     }
@@ -140,7 +136,7 @@ struct PersonalListView: View {
     }
     
     init(vm : MainViewModel) {
-              
+        
         _vm = State(initialValue: vm)
     }
 }

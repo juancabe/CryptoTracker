@@ -44,7 +44,7 @@ struct CryptoDetailView: View {
     // Initializer used in PersonalList view
     init(info: CryptoInfo, vm: MainViewModel) {
         self.id = info.api_id
-        self.isSaved = info.isSaved
+        self.isSaved = true
         _viewModel = StateObject(wrappedValue: CryptoDetailViewModel(info: info, vm: vm))
     }
 
@@ -131,6 +131,7 @@ struct CryptoDetailView: View {
                                             .rotationEffect(.degrees(45.0))
                                             .font(.system(size: 50))
                                             .padding(.leading, 20.0)
+                                            .padding(.bottom, 60.0)
                                     }
                                     Spacer()
                                 }

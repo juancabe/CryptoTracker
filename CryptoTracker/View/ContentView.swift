@@ -24,7 +24,7 @@ struct ContentView: View {
 
             PersonalListView(vm: mvm)
                 .tabItem {
-                    Label("Your cryptos", systemImage: "star")
+                    Label("Your cryptos", systemImage: "list.bullet.rectangle.fill")
                 }
                 .tag(1)
 
