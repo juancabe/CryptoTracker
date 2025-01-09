@@ -1,4 +1,7 @@
 # CryptoTracker
+## Autor
+- **Nombre**: Juan Calzada Bernal
+- **Repositorio**: [GitHub repo](https://github.com/juancabe/CryptoTracker/tree/v4-entrega)
 ## Funcionalidades destacadas
 ### Alertas
 - Se pueden configurar alertas para monitorear el precio de una criptomoneda.
@@ -41,8 +44,6 @@
   - `Model`: Encargado de la definición y la persistencia de los datos.
   - `View`: Encargado de la presentación de los datos.
   - `ViewModel`: Encargado de la lógica de negocio y la comunicación entre `Model` y `View`.
-
-
 ### Servicios
 #### CryptoRetrieveService
 - Encargado de la obtención de datos de la API de CoinGecko.
@@ -54,6 +55,9 @@
 - `UserDefaults` para la persistencia de las preferencias de usuario.
 ### Dependencias
 - `KeyChainAccess` para una API simplificada de Apple Keychain.
+### Version Control
+- Se ha utilizado `Git` para el control de versiones.
+- Se han creado diferentes ramas para el desarrollo de las funcionalidades `v1`, `v2`, `v3`, `v4`.
 
 
 ![Gráfico](./readmeAssets/Charts.png)
