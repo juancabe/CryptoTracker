@@ -1,3 +1,4 @@
+![Icon](./readmeAssets/icon.png)
 # CryptoTracker
 ## Autor
 - **Nombre**: Juan Calzada Bernal
