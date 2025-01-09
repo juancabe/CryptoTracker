@@ -33,6 +33,7 @@ struct AddAlertView: View {
 
     @State private var state: AddState = .notSent
 
+    @State private var canEnableNotifs: Bool = false
     @State private var notifsEnabled: Bool = false
 
     // Initializer to set up initial values
@@ -88,7 +89,9 @@ struct AddAlertView: View {
 
                     Section("Expiration date") {
                         DatePicker("Expiration date", selection: $expirationDate)
-                        Toggle("Enable notifications", isOn: $notifsEnabled)
+                        if canEnableNotifs {
+                            Toggle("Enable notifications", isOn: $notifsEnabled)
+                        }
                     }
 
                     Section("Alert type") {
@@ -161,6 +164,11 @@ struct AddAlertView: View {
                 .alert(alertMessage, isPresented: $showingAlert) {
                     Button("OK", role: .cancel) {
                         state = .notSent
+                    }
+                }
+                .onAppear {
+                    Task {
+                        canEnableNotifs = await NotificationsService.instance.notificationsEnabled()
                     }
                 }
         }
