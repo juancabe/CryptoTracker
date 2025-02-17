@@ -11,33 +11,37 @@ import SwiftData
 struct ContentView: View {
     
     private var modelContext: ModelContext? = nil
-    private var vm: MainViewModel
+    private var mvm: MainViewModel
 
+    @State private var selectedTab = 1
     var body: some View {
-        TabView {
-            /*
-            DefaultListView(vm: cryptoListVm)
+        TabView(selection: $selectedTab) {
+            AlertsView(modelContext)
                 .tabItem {
-                    Label("All Cryptos", systemImage: "list.bullet")
+                    Label("Alerts", systemImage: "bell")
                 }
-             */
-            PersonalListView(vm: vm)
+                .tag(0)
+
+            PersonalListView(vm: mvm)
                 .tabItem {
-                    Label("Your cryptos", systemImage: "star")
+                    Label("Your cryptos", systemImage: "list.bullet.rectangle.fill")
                 }
-            SettingsView(vm: vm)
+                .tag(1)
+
+            SettingsView(vm: mvm)
                 .tabItem {
                     Label("Settings", systemImage: "gear")
                 }
+                .tag(2)
         }
     }
     
     init(modelContext: ModelContext?) {
         self.modelContext = modelContext
         if let modelContext {
-            self.vm = MainViewModel(modelContext: modelContext)
+            self.mvm = MainViewModel(modelContext: modelContext)
         } else {
-            self.vm = MainViewModel()
+            self.mvm = MainViewModel()
         }
     }
 

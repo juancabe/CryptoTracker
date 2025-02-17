@@ -23,6 +23,7 @@ struct SettingsView: View {
     @State private var showingAlert = false
     @State private var selectedCurrency: String
     @State private var alertMessage: String = ""
+    @State private var notificationsEnabled: Bool?
     
     init(vm: MainViewModel = MainViewModel()) {
         self.vm = vm
@@ -43,7 +44,7 @@ struct SettingsView: View {
                             .autocapitalization(.none)
                             .padding()
                         Button {
-                            vm.saveAPIKey(apiKey: apiKey)
+                            vm.CRGI().saveAPIKey(apiKey: apiKey)
                             showAlert(message: "API Key Saved")
                             apiKey = ""
                         } label: {
@@ -58,7 +59,7 @@ struct SettingsView: View {
                     Button("Test API Key") {
                         testStatus = .loading
                         Task {
-                            if(await vm.testAPIKey()) {
+                            if(await vm.CRGI().testAPIKey()) {
                                 testStatus = .success
                             } else {
                                 testStatus = .failure
@@ -85,7 +86,7 @@ struct SettingsView: View {
                     }
                     .padding()
                     Button("Delete API Key") {
-                        vm.saveAPIKey(apiKey: nil)
+                        vm.CRGI().saveAPIKey(apiKey: nil)
                         showAlert(message: "API Key Deleted")
                     }
                     .foregroundStyle(.red)
@@ -99,6 +100,35 @@ struct SettingsView: View {
                     }
                     .onChange(of: selectedCurrency) {
                         vm.setCurrencyInfo(CurrencyInfo(selectedCurrency))
+                    }
+                }
+                Section("Notifications") {
+                    Text("Receive notifications when alerts expire")
+                        .foregroundStyle(.secondary)
+                    if let n = notificationsEnabled, n == false {
+                        Text("In order to receive notifications you need to enable them.")
+                            .foregroundStyle(.secondary)
+                            .padding()
+                        Button("Enable notifications") {
+                            Task {
+                                notificationsEnabled = await NotificationsService.instance.requestAuthorization()
+                            }
+                        }
+                    } else if let n = notificationsEnabled, n {
+                        HStack {
+                            Text("Notifications enabled")
+                            Image(systemName: "checkmark")
+                                .font(.headline)
+                                .foregroundStyle(.green)
+                        }
+                    } else {
+                        ProgressView()
+                    }
+                    
+                }
+                .onAppear {
+                    Task {
+                        notificationsEnabled = await NotificationsService.instance.notificationsEnabled()
                     }
                 }
             }.navigationTitle("Settings")
